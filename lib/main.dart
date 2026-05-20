@@ -38,6 +38,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Ruangin - Smart Room Booking',
+      debugShowCheckedModeBanner: false,
       theme: AppColorTheme.lightTheme(),
       darkTheme: AppColorTheme.darkTheme(),
       themeMode: ThemeMode.light,
