@@ -1,5 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
@@ -161,13 +162,26 @@ class ApiService {
     }
   }
 
-  // Handle error
+  // Handle error with better diagnostics
   Exception _handleError(dynamic error) {
+    String errorMessage = 'Network error. Please check your connection.';
+    
     if (error is http.ClientException) {
-      return Exception('Network error. Please check your connection.');
-    } else {
-      return Exception('An error occurred: $error');
+      if (error.message.contains('Connection refused')) {
+        errorMessage = 'Server tidak dapat diakses. Pastikan server sudah berjalan.';
+      } else if (error.message.contains('certificate')) {
+        errorMessage = 'SSL Certificate error. Periksa koneksi internet Anda.';
+      } else if (error.message.contains('Failed host lookup')) {
+        errorMessage = 'Domain tidak dapat dijangkau. Periksa koneksi internet.';
+      }
+    } else if (error is SocketException) {
+      errorMessage = 'Koneksi internet tidak tersedia.';
+    } else if (error.toString().contains('TimeoutException')) {
+      errorMessage = 'Permintaan timeout. Server merespons terlalu lambat.';
     }
+    
+    print('API Error: $error'); // For debugging
+    return Exception(errorMessage);
   }
 
   // Store token
