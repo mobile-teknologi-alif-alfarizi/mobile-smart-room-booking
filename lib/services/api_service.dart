@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://localhost:8000/api';
+  static const String _baseUrl = 'https://apiruangints3q67vtombd3ztzr98jkgsu.soundofiwu.com/api';
   final _storage = const FlutterSecureStorage();
   static const String _tokenKey = 'token';
 
