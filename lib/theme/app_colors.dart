@@ -112,14 +112,26 @@ class AppColorTheme {
   }
 
   static ThemeData lightTheme() {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      brightness: Brightness.light,
+    ).copyWith(
+      background: AppColors.lightGray,
+      surface: AppColors.white,
+      onPrimary: AppColors.white,
+      onSurface: AppColors.textPrimary,
+      error: AppColors.error,
+    );
+
     return ThemeData(
       useMaterial3: true,
+      colorScheme: colorScheme,
       brightness: Brightness.light,
       primaryColor: AppColors.primary,
-      scaffoldBackgroundColor: AppColors.background,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.textPrimary,
+      scaffoldBackgroundColor: colorScheme.background,
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.background,
+        foregroundColor: colorScheme.onSurface,
         elevation: 0,
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -145,22 +157,22 @@ class AppColorTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.white,
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.primary,
+          foregroundColor: colorScheme.primary,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          side: const BorderSide(color: AppColors.primary),
+          foregroundColor: colorScheme.primary,
+          side: BorderSide(color: colorScheme.primary),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -169,14 +181,26 @@ class AppColorTheme {
   }
 
   static ThemeData darkTheme() {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      brightness: Brightness.dark,
+    ).copyWith(
+      background: const Color(0xFF1F1F1F),
+      surface: const Color(0xFF2A2A2A),
+      onPrimary: AppColors.white,
+      onSurface: AppColors.white,
+      error: AppColors.error,
+    );
+
     return ThemeData(
       useMaterial3: true,
+      colorScheme: colorScheme,
       brightness: Brightness.dark,
       primaryColor: AppColors.primary,
-      scaffoldBackgroundColor: const Color(0xFF1F1F1F),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF2A2A2A),
-        foregroundColor: AppColors.white,
+      scaffoldBackgroundColor: colorScheme.background,
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
         elevation: 0,
       ),
     );
