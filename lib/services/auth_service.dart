@@ -39,11 +39,16 @@ class AuthService {
         };
       } else {
         throw Exception(
-          response['message'] ?? 'Login gagal. Silakan coba lagi.',
+          response['message'] ?? 'Nomor induk atau password salah.',
         );
       }
     } catch (e) {
-      throw Exception('Login error: $e');
+      // Extract error message from exception
+      String errorMsg = e.toString();
+      if (errorMsg.contains('Exception:')) {
+        errorMsg = errorMsg.replaceAll('Exception: ', '');
+      }
+      throw Exception(errorMsg);
     }
   }
 

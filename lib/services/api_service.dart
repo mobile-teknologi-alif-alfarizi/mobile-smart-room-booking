@@ -152,8 +152,13 @@ class ApiService {
       _deleteToken();
       throw Exception('Unauthorized. Please login again.');
     } else if (response.statusCode == 400) {
-      final error = jsonDecode(response.body);
-      throw Exception(error['message'] ?? 'Bad request');
+      try {
+        final error = jsonDecode(response.body);
+        final message = error['message'] ?? 'Nomor induk atau password salah.';
+        throw Exception(message);
+      } catch (e) {
+        throw Exception('Nomor induk atau password salah.');
+      }
     } else if (response.statusCode == 500) {
       throw Exception('Server error. Please try again later.');
     } else {

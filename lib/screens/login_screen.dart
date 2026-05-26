@@ -67,8 +67,28 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.of(context).pushReplacementNamed('/dashboard');
       }
     } catch (e) {
+      String errorMessage = e.toString();
+      
+      // Clean up error message by removing 'Exception: ' prefix
+      if (errorMessage.contains('Exception: ')) {
+        errorMessage = errorMessage.replaceAll('Exception: ', '');
+      }
+      
+      // Provide user-friendly error messages
+      if (errorMessage.contains('Nomor induk atau password salah')) {
+        errorMessage = 'Nomor induk atau password salah';
+      } else if (errorMessage.contains('Koneksi internet')) {
+        errorMessage = 'Koneksi internet tidak tersedia. Silakan coba lagi.';
+      } else if (errorMessage.contains('Network error')) {
+        errorMessage = 'Gagal menghubungi server. Periksa koneksi internet Anda.';
+      } else if (errorMessage.contains('timeout')) {
+        errorMessage = 'Server merespons terlalu lambat. Silakan coba lagi.';
+      } else if (errorMessage.contains('tidak dapat diakses')) {
+        errorMessage = 'Server tidak dapat diakses. Silakan coba lagi nanti.';
+      }
+      
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = errorMessage;
         _isLoading = false;
       });
     }

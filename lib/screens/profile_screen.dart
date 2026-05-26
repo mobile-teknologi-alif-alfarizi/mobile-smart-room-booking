@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/services/auth_service.dart';
 import 'package:mobile_app/theme/app_colors.dart';
+import 'package:mobile_app/screens/notification_settings_screen.dart';
+import 'package:mobile_app/screens/faq_screen.dart';
+import 'package:mobile_app/screens/my_bookings_screen.dart';
+import 'package:mobile_app/screens/change_password_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -285,9 +289,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               children: [
                 _MenuAction(
-                  icon: Icons.badge_rounded,
-                  label: 'Informasi Akun',
-                  onTap: () => _showComingSoon('Informasi Akun'),
+                  icon: Icons.lock_person_rounded,
+                  label: 'Ubah Password',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ChangePasswordScreen(),
+                      ),
+                    );
+                  },
                 ),
                 const Divider(
                   height: 1,
@@ -297,7 +308,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _MenuAction(
                   icon: Icons.calendar_month_rounded,
                   label: 'Booking saya',
-                  onTap: () => _showComingSoon('Booking saya'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MyBookingsScreen(),
+                      ),
+                    );
+                  },
                 ),
                 const Divider(
                   height: 1,
@@ -307,7 +325,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _MenuAction(
                   icon: Icons.notifications_none_rounded,
                   label: 'Pengaturan notifikasi',
-                  onTap: () => _showComingSoon('Pengaturan notifikasi'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const NotificationSettingsScreen(),
+                      ),
+                    );
+                  },
                 ),
                 const Divider(
                   height: 1,
@@ -317,7 +343,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _MenuAction(
                   icon: Icons.help_outline_rounded,
                   label: 'FAQ',
-                  onTap: () => _showComingSoon('FAQ'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FAQScreen(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
