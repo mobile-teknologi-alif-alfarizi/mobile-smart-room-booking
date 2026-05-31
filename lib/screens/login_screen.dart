@@ -77,6 +77,12 @@ class _LoginScreenState extends State<LoginScreen> {
       // Provide user-friendly error messages
       if (errorMessage.contains('Nomor induk atau password salah')) {
         errorMessage = 'Nomor induk atau password salah';
+      } else if (errorMessage.contains('SSL handshake gagal')) {
+        errorMessage =
+            'Koneksi aman ke server gagal (SSL). Coba ganti jaringan atau nonaktifkan Private DNS.';
+      } else if (errorMessage.contains('Domain tidak dapat dijangkau')) {
+        errorMessage =
+            'Domain server tidak bisa dijangkau dari perangkat ini. Coba ganti jaringan internet.';
       } else if (errorMessage.contains('Koneksi internet')) {
         errorMessage = 'Koneksi internet tidak tersedia. Silakan coba lagi.';
       } else if (errorMessage.contains('Network error')) {

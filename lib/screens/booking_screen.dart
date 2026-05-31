@@ -3,6 +3,7 @@ import 'package:mobile_app/services/auth_service.dart';
 import 'package:mobile_app/services/booking_service.dart';
 import 'package:mobile_app/theme/app_colors.dart';
 import 'package:mobile_app/widgets/custom_calendar_picker.dart';
+import 'package:mobile_app/services/local_notification_service.dart';
 
 class BookingScreen extends StatefulWidget {
   const BookingScreen({super.key});
@@ -1812,6 +1813,12 @@ class _BookingScreenState extends State<BookingScreen>
       if (!mounted) {
         return;
       }
+
+      // Trigger local notification with sound
+      LocalNotificationService.showBookingNotification(
+        roomName: selectedRoom['name'] as String,
+        time: '${_selectedStartTime ?? '-'} - ${_selectedEndTime ?? '-'}',
+      );
 
       messenger.showSnackBar(
         SnackBar(

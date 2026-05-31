@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
@@ -19,17 +20,40 @@ class ApiService {
 
   // Get token dari secure storage
   Future<String?> _getToken() async {
-    return await _storage.read(key: _tokenKey);
+    try {
+      return await _storage.read(key: _tokenKey);
+    } catch (e) {
+      debugPrint('SecureStorage read error: $e');
+      try {
+        await _storage.deleteAll();
+      } catch (_) {}
+      return null;
+    }
   }
 
   // Set token ke secure storage
   Future<void> _setToken(String token) async {
-    await _storage.write(key: _tokenKey, value: token);
+    try {
+      await _storage.write(key: _tokenKey, value: token);
+    } catch (e) {
+      debugPrint('SecureStorage write error: $e');
+      try {
+        await _storage.deleteAll();
+        await _storage.write(key: _tokenKey, value: token);
+      } catch (_) {}
+    }
   }
 
   // Delete token dari secure storage
   Future<void> _deleteToken() async {
-    await _storage.delete(key: _tokenKey);
+    try {
+      await _storage.delete(key: _tokenKey);
+    } catch (e) {
+      debugPrint('SecureStorage delete error: $e');
+      try {
+        await _storage.deleteAll();
+      } catch (_) {}
+    }
   }
 
   // Generic GET request
@@ -296,24 +320,43 @@ class ApiService {
   // Handle error with better diagnostics
   Exception _handleError(dynamic error) {
     String errorMessage = 'Network error. Please check your connection.';
+    final rawMessage = error.toString();
+    final normalizedMessage = rawMessage.toLowerCase();
 
     if (error is http.ClientException) {
-      if (error.message.contains('Connection refused')) {
+      final clientMessage = error.message.toLowerCase();
+
+      if (clientMessage.contains('connection refused')) {
         errorMessage =
             'Server tidak dapat diakses. Pastikan server sudah berjalan.';
-      } else if (error.message.contains('certificate')) {
-        errorMessage = 'SSL Certificate error. Periksa koneksi internet Anda.';
-      } else if (error.message.contains('Failed host lookup')) {
+      } else if (clientMessage.contains('certificate') ||
+          clientMessage.contains('handshake') ||
+          clientMessage.contains('certificate_verify_failed')) {
+        errorMessage =
+            'SSL handshake gagal. Sertifikat backend mungkin tidak dipercaya perangkat.';
+      } else if (clientMessage.contains('failed host lookup') ||
+          clientMessage.contains('no address associated with hostname') ||
+          clientMessage.contains('name or service not known')) {
         errorMessage =
             'Domain tidak dapat dijangkau. Periksa koneksi internet.';
       }
+    } else if (error is HandshakeException ||
+        normalizedMessage.contains('handshake') ||
+        normalizedMessage.contains('certificate_verify_failed') ||
+        normalizedMessage.contains('certificate')) {
+      errorMessage =
+          'SSL handshake gagal. Sertifikat backend mungkin tidak dipercaya perangkat.';
     } else if (error is SocketException) {
       errorMessage = 'Koneksi internet tidak tersedia.';
-    } else if (error.toString().contains('TimeoutException')) {
+    } else if (normalizedMessage.contains('timeoutexception') ||
+        normalizedMessage.contains('timed out')) {
       errorMessage = 'Permintaan timeout. Server merespons terlalu lambat.';
     }
 
-    print('API Error: $error'); // For debugging
+    if (kDebugMode) {
+      debugPrint('API Error: $error');
+    }
+
     return Exception(errorMessage);
   }
 

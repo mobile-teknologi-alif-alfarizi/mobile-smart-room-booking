@@ -3,8 +3,11 @@ import 'package:mobile_app/screens/splash_screen.dart';
 import 'package:mobile_app/screens/login_screen.dart';
 import 'package:mobile_app/screens/dashboard_screen.dart';
 import 'package:mobile_app/theme/app_colors.dart';
+import 'package:mobile_app/services/local_notification_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await LocalNotificationService.initialize();
   runApp(const MyApp());
 }
 

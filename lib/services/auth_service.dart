@@ -29,7 +29,14 @@ class AuthService {
 
         // Simpan token dan user data
         await _apiService.storeToken(token);
-        await _storage.write(key: _userKey, value: jsonEncode(user));
+        try {
+          await _storage.write(key: _userKey, value: jsonEncode(user));
+        } catch (e) {
+          try {
+            await _storage.deleteAll();
+            await _storage.write(key: _userKey, value: jsonEncode(user));
+          } catch (_) {}
+        }
 
         return {
           'success': true,
@@ -60,7 +67,14 @@ class AuthService {
       if (response['success'] == true && response['data'] != null) {
         final user = response['data'];
         // Update user data di local storage
-        await _storage.write(key: _userKey, value: jsonEncode(user));
+        try {
+          await _storage.write(key: _userKey, value: jsonEncode(user));
+        } catch (e) {
+          try {
+            await _storage.deleteAll();
+            await _storage.write(key: _userKey, value: jsonEncode(user));
+          } catch (_) {}
+        }
 
         return {
           'success': true,
@@ -81,11 +95,23 @@ class AuthService {
 
       // Hapus token dan user data
       await _apiService.clearAll();
-      await _storage.delete(key: _userKey);
+      try {
+        await _storage.delete(key: _userKey);
+      } catch (e) {
+        try {
+          await _storage.deleteAll();
+        } catch (_) {}
+      }
     } catch (e) {
       // Tetap hapus local data meskipun request gagal
       await _apiService.clearAll();
-      await _storage.delete(key: _userKey);
+      try {
+        await _storage.delete(key: _userKey);
+      } catch (e) {
+        try {
+          await _storage.deleteAll();
+        } catch (_) {}
+      }
       throw Exception('Logout error: $e');
     }
   }
@@ -153,6 +179,9 @@ class AuthService {
       }
       return null;
     } catch (e) {
+      try {
+        await _storage.deleteAll();
+      } catch (_) {}
       return null;
     }
   }
