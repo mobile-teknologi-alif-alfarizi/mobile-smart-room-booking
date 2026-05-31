@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/theme/app_colors.dart';
+import 'package:mobile_app/services/booking_service.dart';
 
 class BookingDetailScreen extends StatefulWidget {
   final Map<String, dynamic> booking;
@@ -14,6 +15,8 @@ class BookingDetailScreen extends StatefulWidget {
 }
 
 class _BookingDetailScreenState extends State<BookingDetailScreen> {
+  final BookingService _bookingService = BookingService();
+
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Confirmed':
@@ -100,60 +103,31 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
               // Action Buttons
               if (widget.booking['status'] == 'Confirmed' ||
                   widget.booking['status'] == 'Pending') ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          _showRescheduleDialog();
-                        },
-                        icon: const Icon(Icons.edit_calendar_rounded),
-                        label: Text(
-                          'Ubah Jadwal',
-                          style: TextStyle(
-                            fontSize: isMobile ? 11 : 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          side: const BorderSide(color: AppColors.primary),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            vertical: isMobile ? 10 : 12,
-                          ),
-                        ),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _showCancelDialog();
+                    },
+                    icon: const Icon(Icons.close_rounded),
+                    label: Text(
+                      'Batalkan Booking',
+                      style: TextStyle(
+                        fontSize: isMobile ? 11 : 12,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(width: isMobile ? 10 : 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          _showCancelDialog();
-                        },
-                        icon: const Icon(Icons.close_rounded),
-                        label: Text(
-                          'Batalkan',
-                          style: TextStyle(
-                            fontSize: isMobile ? 11 : 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.error,
-                          side: const BorderSide(color: AppColors.error),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            vertical: isMobile ? 10 : 12,
-                          ),
-                        ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                      side: const BorderSide(color: AppColors.error),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isMobile ? 10 : 12,
                       ),
                     ),
-                  ],
+                  ),
                 ),
                 SizedBox(height: isMobile ? 16 : 20),
               ],
@@ -414,7 +388,9 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           ),
           SizedBox(height: isMobile ? 8 : 10),
           Text(
-            'Tidak ada catatan khusus untuk booking ini.',
+            (widget.booking['keperluan'] as String?)?.isNotEmpty == true
+                ? widget.booking['keperluan']
+                : 'Tidak ada catatan khusus untuk booking ini.',
             style: TextStyle(
               fontSize: isMobile ? 11 : 12,
               color: AppColors.textSecondary,
@@ -500,101 +476,207 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     return 'N/A';
   }
 
-  void _showRescheduleDialog() {
+  void _showCancelDialog() {
+    final parentContext = context;
+
     showDialog(
       context: context,
       builder: (context) {
         final isMobile = MediaQuery.of(context).size.width < 600;
 
-        return AlertDialog(
-          title: Text(
-            'Ubah Jadwal Booking',
-            style: TextStyle(
-              fontSize: isMobile ? 14 : 16,
-              fontWeight: FontWeight.bold,
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.symmetric(horizontal: isMobile ? 20 : 32),
+          child: Container(
+            padding: EdgeInsets.all(isMobile ? 16 : 20),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: isMobile ? 44 : 50,
+                  height: isMobile ? 44 : 50,
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.warning_rounded,
+                    color: AppColors.error,
+                  ),
+                ),
+                SizedBox(height: isMobile ? 12 : 14),
+                Text(
+                  'Batalkan Booking?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: isMobile ? 15 : 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: isMobile ? 8 : 10),
+                Text(
+                  'Booking untuk ${widget.booking['room_name']} akan dibatalkan dan tidak bisa digunakan lagi pada jadwal tersebut. Pembatalan hanya bisa dilakukan maksimal H-2 dari jadwal booking.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: isMobile ? 12 : 13,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+                SizedBox(height: isMobile ? 16 : 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.textSecondary,
+                          side: const BorderSide(color: AppColors.borderLight),
+                          padding: EdgeInsets.symmetric(vertical: isMobile ? 10 : 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text('Tidak Jadi'),
+                      ),
+                    ),
+                    SizedBox(width: isMobile ? 10 : 12),
+                    Expanded(
+                      child: ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+
+                try {
+                  await _bookingService.cancelBooking(widget.booking['raw_id'] as int);
+
+                  if (!mounted) return;
+                  await _showCancelSuccessModal(parentContext);
+                  Navigator.pop(parentContext, true);
+                } catch (e) {
+                  if (!mounted) return;
+
+                  String errorMsg = e.toString();
+                  if (errorMsg.contains('Exception:')) {
+                    errorMsg = errorMsg.replaceAll('Exception: ', '');
+                  }
+
+                  ScaffoldMessenger.of(parentContext).showSnackBar(
+                    SnackBar(
+                      content: Text(errorMsg),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.error,
+                          foregroundColor: AppColors.white,
+                          padding: EdgeInsets.symmetric(vertical: isMobile ? 10 : 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text('Ya, Batalkan'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          content: Text(
-            'Fitur untuk mengubah jadwal booking akan segera tersedia. Silakan batalkan booking ini dan buat booking baru dengan jadwal yang Anda inginkan.',
-            style: TextStyle(
-              fontSize: isMobile ? 12 : 13,
-              color: AppColors.textSecondary,
-              height: 1.6,
-            ),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-              ),
-              child: const Text(
-                'Mengerti',
-                style: TextStyle(color: AppColors.white),
-              ),
-            ),
-          ],
         );
       },
     );
   }
 
-  void _showCancelDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final isMobile = MediaQuery.of(context).size.width < 600;
+  Future<void> _showCancelSuccessModal(BuildContext parentContext) async {
+    final isMobile = MediaQuery.of(parentContext).size.width < 600;
 
-        return AlertDialog(
-          title: Text(
-            'Batalkan Booking',
-            style: TextStyle(
-              fontSize: isMobile ? 14 : 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Text(
-            'Apakah Anda yakin ingin membatalkan booking untuk ${widget.booking['room_name']}?',
-            style: TextStyle(
-              fontSize: isMobile ? 12 : 13,
-              color: AppColors.textSecondary,
-              height: 1.6,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Tidak',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
+    await showDialog(
+      context: parentContext,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.symmetric(horizontal: isMobile ? 20 : 32),
+          child: Container(
+            padding: EdgeInsets.all(isMobile ? 16 : 20),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
                 ),
-              ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Booking telah dibatalkan'),
-                    backgroundColor: AppColors.accent,
-                    duration: Duration(seconds: 2),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: isMobile ? 44 : 50,
+                  height: isMobile ? 44 : 50,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.14),
+                    shape: BoxShape.circle,
                   ),
-                );
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (mounted) Navigator.pop(context);
-                });
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.error,
-              ),
-              child: const Text(
-                'Batalkan',
-                style: TextStyle(color: AppColors.white),
-              ),
+                  child: const Icon(
+                    Icons.check_circle_rounded,
+                    color: AppColors.accent,
+                  ),
+                ),
+                SizedBox(height: isMobile ? 12 : 14),
+                Text(
+                  'Booking Dibatalkan',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: isMobile ? 15 : 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: isMobile ? 8 : 10),
+                Text(
+                  'Booking kamu berhasil dibatalkan.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: isMobile ? 12 : 13,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+                SizedBox(height: isMobile ? 16 : 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.white,
+                      padding: EdgeInsets.symmetric(vertical: isMobile ? 10 : 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text('Tutup'),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );

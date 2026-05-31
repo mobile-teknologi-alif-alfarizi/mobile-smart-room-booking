@@ -91,7 +91,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                   SizedBox(height: isMobile ? 10 : 12),
                   _buildNotificationTile(
                     'Pengingat Booking',
-                    'Ingatkan 1 jam sebelum jadwal booking',
+                    'Ingatkan 30 menit sebelum jadwal booking',
                     _bookingReminder,
                     (value) {
                       setState(() => _bookingReminder = value);
@@ -140,17 +140,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Pengaturan notifikasi tersimpan'),
-                            backgroundColor: AppColors.accent,
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                        Future.delayed(const Duration(milliseconds: 800), () {
-                          if (mounted) Navigator.pop(context);
-                        });
+                      onPressed: () async {
+                        await _showSaveSuccessModal();
+                        if (!mounted) return;
+                        Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
@@ -178,6 +171,87 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _showSaveSuccessModal() async {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.symmetric(horizontal: isMobile ? 20 : 32),
+          child: Container(
+            padding: EdgeInsets.all(isMobile ? 16 : 20),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: isMobile ? 44 : 50,
+                  height: isMobile ? 44 : 50,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.14),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_rounded,
+                    color: AppColors.accent,
+                  ),
+                ),
+                SizedBox(height: isMobile ? 12 : 14),
+                Text(
+                  'Pengaturan Tersimpan',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: isMobile ? 15 : 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: isMobile ? 8 : 10),
+                Text(
+                  'Preferensi notifikasi kamu berhasil diperbarui.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: isMobile ? 12 : 13,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+                SizedBox(height: isMobile ? 16 : 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.white,
+                      padding: EdgeInsets.symmetric(vertical: isMobile ? 10 : 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text('Tutup'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

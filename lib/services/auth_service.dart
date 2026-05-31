@@ -114,6 +114,36 @@ class AuthService {
     }
   }
 
+  // Change password for authenticated user
+  Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirmation,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        '/auth/change-password',
+        body: {
+          'current_password': currentPassword,
+          'new_password': newPassword,
+          'new_password_confirmation': newPasswordConfirmation,
+        },
+      );
+
+      if (response['success'] == true) {
+        return response;
+      }
+
+      throw Exception(response['message'] ?? 'Gagal mengubah password');
+    } catch (e) {
+      String errorMsg = e.toString();
+      if (errorMsg.contains('Exception:')) {
+        errorMsg = errorMsg.replaceAll('Exception: ', '');
+      }
+      throw Exception(errorMsg);
+    }
+  }
+
   // Get stored user
   Future<Map<String, dynamic>?> getStoredUser() async {
     try {

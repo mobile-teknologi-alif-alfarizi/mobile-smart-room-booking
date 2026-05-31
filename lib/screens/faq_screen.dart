@@ -11,44 +11,52 @@ class FAQScreen extends StatefulWidget {
 class _FAQScreenState extends State<FAQScreen> {
   final List<Map<String, String>> _faqs = [
     {
+      'category': 'Booking',
       'question': 'Bagaimana cara melakukan booking ruang?',
       'answer':
-          'Untuk melakukan booking ruang, buka halaman "Pemesanan Ruang", pilih tanggal dan waktu yang Anda inginkan, lalu pilih ruang yang tersedia. Setelah itu, klik "Konfirmasi Booking" untuk menyelesaikan pemesanan.',
+          'Buka menu booking, pilih kampus terlebih dahulu, lalu pilih ruangan yang tersedia. Setelah tanggal dipilih, sistem hanya menampilkan jam yang kosong. Booking akan otomatis disetujui jika slot masih tersedia.',
     },
     {
-      'question': 'Berapa lama durasi booking maksimal?',
+      'category': 'Booking',
+      'question': 'Jam berapa booking boleh dilakukan?',
       'answer':
-          'Durasi booking maksimal adalah 4 jam per sesi. Namun, Anda dapat melakukan multiple booking untuk durasi yang lebih panjang dengan memilih time slot yang berbeda.',
+          'Booking hanya dapat dibuat pada rentang jam 07:00 sampai 17:00. Di luar jam tersebut, sistem akan menolak pengajuan booking.',
     },
     {
+      'category': 'Booking',
       'question': 'Bagaimana jika saya ingin membatalkan booking?',
       'answer':
-          'Anda dapat membatalkan booking melalui halaman "Riwayat Booking". Klik pada booking yang ingin dibatalkan dan pilih opsi "Batalkan Booking". Pembatalan dapat dilakukan hingga 1 jam sebelum jadwal booking dimulai.',
+          'Pembatalan booking hanya bisa dilakukan maksimal H-2 dari tanggal booking. Jika sudah melewati batas tersebut, tombol batal akan tetap muncul tetapi sistem akan menolak proses pembatalan.',
     },
     {
+      'category': 'Booking',
       'question': 'Bisakah saya mengubah tanggal dan waktu booking?',
       'answer':
-          'Ya, Anda dapat mengubah booking dengan membatalkan booking yang lama dan membuat booking baru. Ubah dapat dilakukan melalui halaman "Riwayat Booking".',
+          'Saat ini fitur ubah jadwal belum tersedia. Jika ada perubahan, silakan batalkan booking sesuai aturan H-2 lalu buat booking baru dengan jadwal yang benar.',
     },
     {
-      'question': 'Bagaimana jika terjadi masalah saat melakukan booking?',
+      'category': 'Notifikasi',
+      'question': 'Kapan saya menerima notifikasi booking?',
       'answer':
-          'Jika mengalami masalah, pastikan koneksi internet Anda stabil. Coba refresh halaman atau logout dan login kembali. Jika masalah masih berlanjut, hubungi admin melalui fitur Help & Support.',
+          'Setelah booking berhasil, Anda akan menerima notifikasi otomatis dari sistem. Untuk jadwal kelas, sistem juga dapat mengirim pengingat 30 menit sebelum waktu mulai.',
     },
     {
-      'question': 'Apakah ada batasan jumlah booking per hari?',
+      'category': 'Notifikasi',
+      'question': 'Apakah notifikasi bisa dikirim oleh admin?',
       'answer':
-          'Tidak ada batasan jumlah booking per hari. Namun, setiap time slot hanya dapat digunakan satu kali per pengguna. Pastikan untuk merencanakan schedule booking Anda dengan baik.',
+          'Ya. Admin dapat mengirim notifikasi manual untuk keperluan umum, pengumuman, atau informasi penting lainnya. Notifikasi akan diberi penanda sumber admin atau sistem.',
     },
     {
+      'category': 'Akun',
       'question': 'Bagaimana cara mengatur notifikasi booking?',
       'answer':
           'Anda dapat mengatur notifikasi melalui menu "Pengaturan Notifikasi" di halaman Profil. Di sana Anda dapat mengaktifkan atau menonaktifkan berbagai jenis notifikasi termasuk pengingat booking.',
     },
     {
-      'question': 'Akses ruang apa saja yang tersedia di aplikasi ini?',
+      'category': 'Ruang',
+      'question': 'Ruang apa saja yang tersedia di aplikasi ini?',
       'answer':
-          'Aplikasi ini menyediakan akses ke berbagai ruang termasuk: Kelas, Ruang Meeting, dan Lab Komputer. Ketersediaan ruang dapat berbeda tergantung jadwal dan lokasi kampus.',
+          'Aplikasi menyediakan beberapa jenis ruang seperti kelas, ruang meeting, dan lab komputer. Daftar ruang menyesuaikan data kampus yang tersedia dan jadwal yang belum terpakai.',
     },
   ];
 
@@ -58,6 +66,7 @@ class _FAQScreenState extends State<FAQScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
+    final categories = _faqs.map((item) => item['category']!).toSet().toList();
 
     return Scaffold(
       backgroundColor: AppColors.lightGray,
@@ -85,15 +94,90 @@ class _FAQScreenState extends State<FAQScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Temukan jawaban untuk pertanyaan umum tentang Ruangin',
-                style: TextStyle(
-                  fontSize: isMobile ? 13 : 14,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(isMobile ? 16 : 20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: AppColors.primaryGradient,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                      blurRadius: 18,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: isMobile ? 46 : 52,
+                      height: isMobile ? 46 : 52,
+                      decoration: BoxDecoration(
+                        color: AppColors.white.withValues(alpha: 0.16),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.help_outline_rounded,
+                        color: AppColors.white,
+                      ),
+                    ),
+                    SizedBox(width: isMobile ? 12 : 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'FAQ Ruangin',
+                            style: TextStyle(
+                              fontSize: isMobile ? 18 : 20,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.white,
+                            ),
+                          ),
+                          SizedBox(height: isMobile ? 4 : 6),
+                          Text(
+                            'Jawaban singkat tentang aturan booking, pembatalan, notifikasi, dan penggunaan aplikasi.',
+                            style: TextStyle(
+                              fontSize: isMobile ? 12 : 13,
+                              color: AppColors.white.withValues(alpha: 0.9),
+                              height: 1.45,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: isMobile ? 20 : 24),
+              SizedBox(height: isMobile ? 14 : 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: categories
+                    .map(
+                      (category) => Chip(
+                        label: Text(category),
+                        labelStyle: TextStyle(
+                          fontSize: isMobile ? 11 : 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.08),
+                        side: BorderSide.none,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+              SizedBox(height: isMobile ? 18 : 22),
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -138,6 +222,20 @@ class _FAQScreenState extends State<FAQScreen> {
                             padding: EdgeInsets.all(isMobile ? 14 : 16),
                             child: Row(
                               children: [
+                                  Container(
+                                    width: isMobile ? 28 : 30,
+                                    height: isMobile ? 28 : 30,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withValues(alpha: 0.08),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      _getCategoryIcon(faq['category']!),
+                                      color: AppColors.primary,
+                                      size: isMobile ? 16 : 18,
+                                    ),
+                                  ),
+                                  SizedBox(width: isMobile ? 10 : 12),
                                 Expanded(
                                   child: Text(
                                     faq['question']!,
@@ -171,6 +269,16 @@ class _FAQScreenState extends State<FAQScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Text(
+                                  faq['category']!,
+                                  style: TextStyle(
+                                    fontSize: isMobile ? 10 : 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                                SizedBox(height: isMobile ? 8 : 10),
                                 Container(
                                   padding: EdgeInsets.all(isMobile ? 10 : 12),
                                   decoration: BoxDecoration(
@@ -218,7 +326,7 @@ class _FAQScreenState extends State<FAQScreen> {
                     SizedBox(width: isMobile ? 10 : 12),
                     Expanded(
                       child: Text(
-                        'Tidak menemukan jawaban? Hubungi admin melalui email atau chat support',
+                        'Tidak menemukan jawaban? Hubungi admin melalui menu bantuan atau notifikasi manual dari sistem.',
                         style: TextStyle(
                           fontSize: isMobile ? 11 : 12,
                           color: AppColors.primary,
@@ -235,5 +343,20 @@ class _FAQScreenState extends State<FAQScreen> {
         ),
       ),
     );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'Booking':
+        return Icons.meeting_room_rounded;
+      case 'Notifikasi':
+        return Icons.notifications_rounded;
+      case 'Akun':
+        return Icons.person_rounded;
+      case 'Ruang':
+        return Icons.domain_rounded;
+      default:
+        return Icons.help_outline_rounded;
+    }
   }
 }

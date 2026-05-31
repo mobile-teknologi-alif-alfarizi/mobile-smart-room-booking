@@ -4,7 +4,8 @@ import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
-  static const String _baseUrl = 'https://apiruangints3q67vtombd3ztzr98jkgsu.soundofiwu.com/api';
+  static const String _baseUrl =
+      'https://apiruangints3q67vtombd3ztzr98jkgsu.soundofiwu.com/api';
   final _storage = const FlutterSecureStorage();
   static const String _tokenKey = 'token';
 
@@ -33,6 +34,8 @@ class ApiService {
 
   // Generic GET request
   Future<Map<String, dynamic>> get(String endpoint) async {
+    late http.Response response;
+
     try {
       final token = await _getToken();
       final headers = {
@@ -44,17 +47,39 @@ class ApiService {
         headers['Authorization'] = 'Bearer $token';
       }
 
-      final response = await http
-          .get(
-            Uri.parse('$_baseUrl$endpoint'),
-            headers: headers,
-          )
+      response = await http
+          .get(Uri.parse('$_baseUrl$endpoint'), headers: headers)
           .timeout(const Duration(seconds: 30));
-
-      return _handleResponse(response);
     } catch (e) {
       throw _handleError(e);
     }
+
+    return _handleResponse(response);
+  }
+
+  // Generic GET request for endpoints that return non-map JSON payloads.
+  Future<dynamic> getDynamic(String endpoint) async {
+    late http.Response response;
+
+    try {
+      final token = await _getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      response = await http
+          .get(Uri.parse('$_baseUrl$endpoint'), headers: headers)
+          .timeout(const Duration(seconds: 30));
+    } catch (e) {
+      throw _handleError(e);
+    }
+
+    return _handleDynamicResponse(response);
   }
 
   // Generic POST request
@@ -62,6 +87,8 @@ class ApiService {
     String endpoint, {
     required Map<String, dynamic> body,
   }) async {
+    late http.Response response;
+
     try {
       final token = await _getToken();
       final headers = {
@@ -73,18 +100,18 @@ class ApiService {
         headers['Authorization'] = 'Bearer $token';
       }
 
-      final response = await http
+      response = await http
           .post(
             Uri.parse('$_baseUrl$endpoint'),
             headers: headers,
             body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 30));
-
-      return _handleResponse(response);
     } catch (e) {
       throw _handleError(e);
     }
+
+    return _handleResponse(response);
   }
 
   // Generic PUT request
@@ -92,6 +119,8 @@ class ApiService {
     String endpoint, {
     required Map<String, dynamic> body,
   }) async {
+    late http.Response response;
+
     try {
       final token = await _getToken();
       final headers = {
@@ -103,22 +132,24 @@ class ApiService {
         headers['Authorization'] = 'Bearer $token';
       }
 
-      final response = await http
+      response = await http
           .put(
             Uri.parse('$_baseUrl$endpoint'),
             headers: headers,
             body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 30));
-
-      return _handleResponse(response);
     } catch (e) {
       throw _handleError(e);
     }
+
+    return _handleResponse(response);
   }
 
   // Generic DELETE request
   Future<Map<String, dynamic>> delete(String endpoint) async {
+    late http.Response response;
+
     try {
       final token = await _getToken();
       final headers = {
@@ -130,16 +161,89 @@ class ApiService {
         headers['Authorization'] = 'Bearer $token';
       }
 
-      final response = await http
-          .delete(
-            Uri.parse('$_baseUrl$endpoint'),
-            headers: headers,
-          )
+      response = await http
+          .delete(Uri.parse('$_baseUrl$endpoint'), headers: headers)
           .timeout(const Duration(seconds: 30));
-
-      return _handleResponse(response);
     } catch (e) {
       throw _handleError(e);
+    }
+
+    return _handleResponse(response);
+  }
+
+  // Generic PATCH request
+  Future<Map<String, dynamic>> patch(
+    String endpoint, {
+    Map<String, dynamic>? body,
+  }) async {
+    late http.Response response;
+
+    try {
+      final token = await _getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      response = await http
+          .patch(
+            Uri.parse('$_baseUrl$endpoint'),
+            headers: headers,
+            body: body != null ? jsonEncode(body) : null,
+          )
+          .timeout(const Duration(seconds: 30));
+    } catch (e) {
+      throw _handleError(e);
+    }
+
+    return _handleResponse(response);
+  }
+
+  dynamic _handleDynamicResponse(http.Response response) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else if (response.statusCode == 401) {
+      _deleteToken();
+      throw Exception('Unauthorized. Please login again.');
+    } else if (response.statusCode == 400) {
+      try {
+        final error = jsonDecode(response.body);
+        final message = error['message'] ?? 'Nomor induk atau password salah.';
+        throw Exception(message);
+      } catch (e) {
+        throw Exception('Nomor induk atau password salah.');
+      }
+    } else if (response.statusCode == 422) {
+      try {
+        final error = jsonDecode(response.body);
+        final errors = error['errors'];
+
+        if (errors is Map && errors.isNotEmpty) {
+          final firstKey = errors.keys.first;
+          final firstError = errors[firstKey];
+          if (firstError is List && firstError.isNotEmpty) {
+            throw Exception(firstError.first.toString());
+          }
+        }
+
+        final message = error['message'] ?? 'Validasi gagal';
+        throw Exception(message);
+      } catch (e) {
+        if (e is Exception) {
+          rethrow;
+        }
+        throw Exception('Validasi gagal');
+      }
+    } else if (response.statusCode == 500) {
+      throw Exception('Server error. Please try again later.');
+    } else {
+      throw Exception(
+        'Error: ${response.statusCode} - ${response.reasonPhrase}',
+      );
     }
   }
 
@@ -159,32 +263,56 @@ class ApiService {
       } catch (e) {
         throw Exception('Nomor induk atau password salah.');
       }
+    } else if (response.statusCode == 422) {
+      try {
+        final error = jsonDecode(response.body);
+        final errors = error['errors'];
+
+        if (errors is Map && errors.isNotEmpty) {
+          final firstKey = errors.keys.first;
+          final firstError = errors[firstKey];
+          if (firstError is List && firstError.isNotEmpty) {
+            throw Exception(firstError.first.toString());
+          }
+        }
+
+        final message = error['message'] ?? 'Validasi gagal';
+        throw Exception(message);
+      } catch (e) {
+        if (e is Exception) {
+          rethrow;
+        }
+        throw Exception('Validasi gagal');
+      }
     } else if (response.statusCode == 500) {
       throw Exception('Server error. Please try again later.');
     } else {
       throw Exception(
-          'Error: ${response.statusCode} - ${response.reasonPhrase}');
+        'Error: ${response.statusCode} - ${response.reasonPhrase}',
+      );
     }
   }
 
   // Handle error with better diagnostics
   Exception _handleError(dynamic error) {
     String errorMessage = 'Network error. Please check your connection.';
-    
+
     if (error is http.ClientException) {
       if (error.message.contains('Connection refused')) {
-        errorMessage = 'Server tidak dapat diakses. Pastikan server sudah berjalan.';
+        errorMessage =
+            'Server tidak dapat diakses. Pastikan server sudah berjalan.';
       } else if (error.message.contains('certificate')) {
         errorMessage = 'SSL Certificate error. Periksa koneksi internet Anda.';
       } else if (error.message.contains('Failed host lookup')) {
-        errorMessage = 'Domain tidak dapat dijangkau. Periksa koneksi internet.';
+        errorMessage =
+            'Domain tidak dapat dijangkau. Periksa koneksi internet.';
       }
     } else if (error is SocketException) {
       errorMessage = 'Koneksi internet tidak tersedia.';
     } else if (error.toString().contains('TimeoutException')) {
       errorMessage = 'Permintaan timeout. Server merespons terlalu lambat.';
     }
-    
+
     print('API Error: $error'); // For debugging
     return Exception(errorMessage);
   }

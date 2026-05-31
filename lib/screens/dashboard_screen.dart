@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+  import 'package:flutter/material.dart';
 import 'package:mobile_app/screens/booking_screen.dart';
 import 'package:mobile_app/screens/home_screen.dart';
 import 'package:mobile_app/screens/notification_screen.dart';
 import 'package:mobile_app/screens/profile_screen.dart';
+import 'package:mobile_app/services/notification_service.dart';
 import 'package:mobile_app/theme/app_colors.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -13,8 +14,10 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final NotificationService _notificationService = NotificationService();
   int _selectedIndex = 0;
   int _slideDirection = 1;
+  int _unreadCount = 0;
 
   final List<Widget> _pages = const [
     HomeScreen(),
@@ -22,6 +25,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
     NotificationScreen(),
     ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
+  }
+
+  Future<void> _loadUnreadCount() async {
+    try {
+      final unreadCount = await _notificationService.getUnreadCount();
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _unreadCount = unreadCount;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+    }
+  }
 
   void _selectTab(int index) {
     if (_selectedIndex == index) {
@@ -145,6 +171,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             icon: Icons.notifications_rounded,
                             isSelected: _selectedIndex == 2,
                             onTap: () => _selectTab(2),
+                            badgeCount: _unreadCount,
                           ),
                           _NavItem(
                             icon: Icons.person_rounded,
@@ -170,11 +197,13 @@ class _NavItem extends StatelessWidget {
     required this.icon,
     required this.isSelected,
     required this.onTap,
+    this.badgeCount,
   });
 
   final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
+  final int? badgeCount;
 
   @override
   Widget build(BuildContext context) {
@@ -185,16 +214,46 @@ class _NavItem extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(999),
         child: Center(
-          child: AnimatedSlide(
-            duration: const Duration(milliseconds: 260),
-            curve: Curves.easeOutBack,
-            offset: isSelected ? const Offset(0, -0.12) : Offset.zero,
-            child: AnimatedScale(
-              duration: const Duration(milliseconds: 260),
-              curve: Curves.easeOutBack,
-              scale: isSelected ? 1.08 : 1.0,
-              child: Icon(icon, size: 28, color: iconColor),
-            ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              AnimatedSlide(
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOutBack,
+                offset: isSelected ? const Offset(0, -0.12) : Offset.zero,
+                child: AnimatedScale(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutBack,
+                  scale: isSelected ? 1.08 : 1.0,
+                  child: Icon(icon, size: 28, color: iconColor),
+                ),
+              ),
+              if (badgeCount != null && badgeCount! > 0)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: Container(
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: const BoxDecoration(
+                      color: AppColors.error,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      badgeCount! > 9 ? '9+' : badgeCount.toString(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),

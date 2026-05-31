@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/services/auth_service.dart';
 import 'package:mobile_app/theme/app_colors.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -9,6 +10,8 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+  final AuthService _authService = AuthService();
+
   late TextEditingController _currentPasswordController;
   late TextEditingController _newPasswordController;
   late TextEditingController _confirmPasswordController;
@@ -92,13 +95,20 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     _submitChangePassword(currentPassword, newPassword);
   }
 
-  void _submitChangePassword(String currentPassword, String newPassword) {
+  Future<void> _submitChangePassword(String currentPassword, String newPassword) async {
     setState(() {
       _isLoading = true;
     });
 
-    // Simulate API call
-    Future.delayed(const Duration(seconds: 2), () {
+    try {
+      await _authService.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+        newPasswordConfirmation: _confirmPasswordController.text.trim(),
+      );
+
+      if (!mounted) return;
+
       setState(() {
         _isLoading = false;
         _successMessage = 'Password berhasil diubah';
@@ -107,7 +117,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         _confirmPasswordController.clear();
       });
 
-      // Show success snackbar and navigate back after 2 seconds
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Password berhasil diubah'),
@@ -121,7 +130,19 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           Navigator.pop(context);
         }
       });
-    });
+    } catch (e) {
+      if (!mounted) return;
+
+      String errorMsg = e.toString();
+      if (errorMsg.contains('Exception:')) {
+        errorMsg = errorMsg.replaceAll('Exception: ', '');
+      }
+
+      setState(() {
+        _isLoading = false;
+        _errorMessage = errorMsg;
+      });
+    }
   }
 
   @override
