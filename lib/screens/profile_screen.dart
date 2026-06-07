@@ -5,6 +5,7 @@ import 'package:mobile_app/screens/notification_settings_screen.dart';
 import 'package:mobile_app/screens/faq_screen.dart';
 import 'package:mobile_app/screens/my_bookings_screen.dart';
 import 'package:mobile_app/screens/change_password_screen.dart';
+import 'package:mobile_app/screens/chat_list_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -313,6 +314,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const MyBookingsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: AppColors.borderLight,
+                ),
+                _MenuAction(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: 'Tanya Admin (Chat)',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ChatListScreen(),
                       ),
                     );
                   },

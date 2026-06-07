@@ -3,6 +3,7 @@ import 'package:mobile_app/services/auth_service.dart';
 import 'package:mobile_app/services/booking_service.dart';
 import 'package:mobile_app/services/notification_service.dart';
 import 'package:mobile_app/theme/app_colors.dart';
+import 'package:mobile_app/screens/chat_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -543,7 +544,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ChatListScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.chat_bubble_outline_rounded),
+                        color: AppColors.primary,
+                        iconSize: isMobile ? 22 : 26,
+                      ),
+                      const SizedBox(width: 8),
                       Container(
                         width: isMobile ? 45 : 50,
                         height: isMobile ? 45 : 50,
